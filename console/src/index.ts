@@ -1,6 +1,6 @@
 import { definePlugin } from '@halo-dev/console-shared'
 import { markRaw } from 'vue'
-import UnsplashSelectorProvider from './components/UnsplashSelectorProvider.vue'
+import WebdavSelectorProvider from './components/WebdavSelectorProvider.vue'
 import './styles/tailwind.css'
 
 export default definePlugin({
@@ -10,9 +10,9 @@ export default definePlugin({
     'attachment:selector:create': () => {
       return [
         {
-          id: 'unsplash',
-          label: 'Unsplash',
-          component: markRaw(UnsplashSelectorProvider)
+          id: 'webdav',
+          label: 'WebDAV',
+          component: markRaw(WebdavSelectorProvider)
         }
       ]
     }

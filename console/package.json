@@ -14,8 +14,8 @@
     "@halo-dev/console-shared": "^2.17.0",
     "@tanstack/vue-query": "^4.37.1",
     "axios": "^1.7.2",
-    "unsplash-js": "^7.0.19",
-    "vue": "^3.4.33"
+    "vue": "^3.4.33",
+    "webdav": "^5.7.1"
   },
   "devDependencies": {
     "@halo-dev/ui-plugin-bundler-kit": "^2.17.0",

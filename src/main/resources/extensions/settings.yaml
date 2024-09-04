@@ -1,14 +1,35 @@
 apiVersion: v1alpha1
 kind: Setting
 metadata:
-  name: unsplash-settings
+  name: webdav-settings
 spec:
   forms: 
     - group: basic
       label: 基本设置
       formSchema:
+        - $formkit: text
+          help: https://alist.nn.ci/zh/guide/webdav.html
+          label: AList地址Url，需要取消sign签名
+          name: url
+          validation: required
+        - $formkit: text
+          help: 如 baidu/apps/alist
+          label: 存储目录
+          name: path
+          validation: required
+        - $formkit: text
+          help: 与网页端用户名一致
+          label: WebDAV用户名
+          name: username
+          validation: required
         - $formkit: password
-          help: https://unsplash.com/developers
-          label: Access Key
-          name: accessKey
+          help: 与网页端密码一致
+          label: WebDAV密码
+          name: password
+          validation: required
+        - $formkit: number
+          help: 分页大小,太大时图片加载容易报403
+          label: 分页大小
+          value: 6
+          name: pageSize
           validation: required
