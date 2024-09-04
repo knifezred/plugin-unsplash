@@ -7,16 +7,16 @@ spec:
   version: 1.0.0
   requires: ">=2.19.0"
   author:
-    name: Halo
-    website: https://github.com/halo-dev
+    name: KnifeZ
+    website: https://github.com/knifezred
   logo: logo.svg
   settingName: webdav-settings
   configMapName: webdav-settings
-  repo: https://github.com/knifezred/plugin-unsplash
-  homepage: https://github.com/knifezred/plugin-unsplash
-  issues: https://github.com/halo-sigs/plugin-unsplash/issues
+  repo: https://github.com/knifezred/plugin-webdav
+  homepage: https://github.com/knifezred/plugin-webdav
+  issues: https://github.com/halo-sigs/plugin-webdav/issues
   displayName: "WebDAV"
   description: "提供从 WebDAV 选择或转存图片的能力,根据plugin-unsplash修改"
   license:
     - name: "GPL-3.0"
-      url: "https://github.com/knifezred/plugin-unsplash/blob/main/LICENSE"
+      url: "https://github.com/knifezred/plugin-webdav/blob/main/LICENSE"
