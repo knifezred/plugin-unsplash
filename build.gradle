@@ -5,10 +5,11 @@ plugins {
     id 'java'
 }
 
-group 'run.halo.unsplash'
+group 'run.halo.webdav'
 sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url 'https://s01.oss.sonatype.org/content/repositories/releases' }
     maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
@@ -53,5 +54,25 @@ build {
 }
 
 halo {
-    version = "2.17"
+    version = "2.19"
 }
+
+//haloPlugin {
+//    openApi {
+//        outputDir = file("$rootDir/api-docs/openapi/v3_0")
+//        groupingRules {
+//            webdavV1alpha1Api {
+//                displayName = 'Extension API for Attachments'
+//                pathsToMatch = [
+//                        '/apis/api.plugin.halo.run/v1alpha1/plugins/plugin-webdav/**'
+//                ]
+//            }
+//        }
+//        groupedApiMappings = [
+//                '/v3/api-docs/webdavV1alpha1Api': 'webdavV1alpha1Api.json'
+//        ]
+//        generator {
+//            outputDir = file("${projectDir}/console/src/api/generated")
+//        }
+//    }
+//}

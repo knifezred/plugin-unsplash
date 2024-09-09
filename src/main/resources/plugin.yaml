@@ -1,22 +1,21 @@
 apiVersion: plugin.halo.run/v1alpha1
 kind: Plugin
 metadata:
-  name: PluginWebDAV
+  name: plugin-webdav
 spec:
   enabled: true
-  version: 1.0.0
   requires: ">=2.19.0"
   author:
     name: KnifeZ
     website: https://github.com/knifezred
   logo: logo.svg
   settingName: webdav-settings
-  configMapName: webdav-settings
+  configMapName: webdav-configs
   repo: https://github.com/knifezred/plugin-webdav
   homepage: https://github.com/knifezred/plugin-webdav
   issues: https://github.com/halo-sigs/plugin-webdav/issues
   displayName: "WebDAV"
-  description: "提供从 WebDAV 选择或转存图片的能力,根据plugin-unsplash修改"
+  description: "提供从 WebDAV 选择图片的能力"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/knifezred/plugin-webdav/blob/main/LICENSE"

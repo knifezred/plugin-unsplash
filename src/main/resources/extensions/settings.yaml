@@ -9,13 +9,18 @@ spec:
       formSchema:
         - $formkit: text
           help: https://alist.nn.ci/zh/guide/webdav.html
-          label: AList地址Url，需要取消sign签名
+          label: AList地址Url,需带/dav/目录，并且存储需要取消sign签名
           name: url
           validation: required
         - $formkit: text
-          help: 如 baidu/apps/alist
+          help: 如 baidu/photos
           label: 存储目录
           name: path
+          validation: required
+        - $formkit: text
+          help: 如 baidu/thumbnails
+          label: 缩略图
+          name: thumbnails
           validation: required
         - $formkit: text
           help: 与网页端用户名一致

@@ -11,7 +11,7 @@ import {
 import type { AttachmentLike } from '@halo-dev/console-shared'
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch, watchEffect } from 'vue'
-import { createClient, type FileStat } from 'webdav'
+import { createClient, type FileStat, type WebDAVClient } from 'webdav'
 
 const props = withDefaults(
   defineProps<{
@@ -29,20 +29,21 @@ const props = withDefaults(
 const emit = defineEmits<{
   (event: 'update:selected', attachments: AttachmentLike[]): void
 }>()
-
 const selectedPhotos = ref<Set<FileStat>>(new Set())
 const photos = ref<FileStat[]>([])
+const topics = ref<FileStat[]>([])
+const selectedTopic = ref<FileStat>()
 const totalPhotos = ref<FileStat[]>([])
 const page = ref(1)
 const pageSize = ref(6)
 const keyword = ref('')
 const pluginDetailModal = ref(false)
-
+let webDavClient: WebDAVClient | null = null
 const { data: config } = useQuery({
   queryKey: ['base-config'],
   queryFn: async () => {
     const { data: configMap } = await consoleApiClient.plugin.plugin.fetchPluginConfig({
-      name: 'PluginWebDAV'
+      name: 'plugin-webdav'
     })
     var result = JSON.parse(configMap.data?.basic || "{ url: '',path:'',username:'',password:'' }")
     result.domain = result.url.replace('dav/', 'd')
@@ -61,28 +62,63 @@ const { data: config } = useQuery({
   }
 })
 
+function previewLink(filename: string) {
+  return config.value.link + filename
+}
+
 function pageNext() {
   page.value++
-  photos.value = totalPhotos.value.filter((x, index) => index < page.value * pageSize.value)
+  totalPhotos.value
+    .filter((x) => x.filename.includes(keyword.value))
+    .filter(
+      (x, index) =>
+        index < page.value * pageSize.value && index >= (page.value - 1) * pageSize.value
+    )
+    .forEach((item) => {
+      item.thumbnail = thumbnailImg(item.filename)
+      photos.value.push(item)
+    })
+}
+
+function thumbnailImg(filename: string) {
+  return (
+    config.value.domain + config.value.thumbnails + filename.substring(config.value.path.length)
+  )
 }
 
 const { isFetching } = useQuery({
-  queryKey: ['dav-photos', keyword],
+  queryKey: ['dav-photos', selectedTopic],
   queryFn: async () => {
-    const webDavClient = createClient(config.value.url, {
-      username: config.value.username,
-      password: config.value.password
-    })
+    if (webDavClient == null) {
+      webDavClient = createClient(config.value.url, {
+        username: config.value.username,
+        password: config.value.password
+      })
+    }
+    var searchFolder = config.value.path
+    if (selectedTopic.value != undefined) {
+      searchFolder = selectedTopic.value.filename
+    }
+    console.log(searchFolder)
     pageSize.value = config.value.pageSize
-    const contents = await webDavClient.getDirectoryContents(config.value.path, {
-      deep: true,
-      glob: '/**/*' + keyword.value + '*.*'
+    const contents = await webDavClient.getDirectoryContents(searchFolder, {
+      deep: true
     })
-    return contents || []
+    var result = contents as FileStat[]
+    if (topics.value.length == 0) {
+      topics.value = result.filter((x) => x.type == 'directory')
+    }
+    return result
   },
   onSuccess(data) {
-    totalPhotos.value = data as FileStat[]
-    photos.value = totalPhotos.value.filter((x, index) => index < page.value * pageSize.value)
+    totalPhotos.value = data.filter((x) => x.type == 'file')
+    photos.value = []
+    totalPhotos.value
+      .filter((x, index) => index < page.value * pageSize.value)
+      .forEach((item) => {
+        item.thumbnail = thumbnailImg(item.filename)
+        photos.value.push(item)
+      })
   },
   keepPreviousData: true,
   enabled: computed(() => !!config.value)
@@ -94,8 +130,27 @@ watch(
     photos.value = []
     selectedPhotos.value = new Set()
     page.value = 1
+    totalPhotos.value
+      .filter((x) => x.filename.includes(keyword.value))
+      .filter(
+        (x, index) =>
+          index < page.value * pageSize.value && index >= (page.value - 1) * pageSize.value
+      )
+      .forEach((item) => {
+        if (item.thumbnail == '') {
+          item.thumbnail = thumbnailImg(item.filename)
+        }
+        photos.value.push(item)
+      })
   }
 )
+
+const handleSelectTopic = (topic: FileStat) => {
+  selectedTopic.value = topic
+  selectedPhotos.value = new Set()
+  photos.value = []
+  page.value = 1
+}
 
 const handleSelect = async (photo: FileStat) => {
   if (selectedPhotos.value.has(photo)) {
@@ -138,7 +193,23 @@ watchEffect(() => {
   <div>
     <SearchInput v-model="keyword" />
   </div>
-
+  <div
+    class="topics mt-2 flex gap-x-2 gap-y-3 overflow-x-scroll overflow-y-hidden scroll-smooth pb-1"
+  >
+    <div
+      v-for="(topic, index) in topics"
+      :key="index"
+      :class="{
+        '!text-gray-200 !bg-gray-900': topic.basename === selectedTopic?.basename
+      }"
+      class="flex cursor-pointer items-center rounded bg-gray-100 p-2 text-gray-500 transition-all hover:bg-gray-200 hover:text-gray-900 hover:shadow-sm"
+      @click="handleSelectTopic(topic)"
+    >
+      <div class="flex flex-1 items-center truncate">
+        <span class="truncate text-sm"> {{ topic.basename }} </span>
+      </div>
+    </div>
+  </div>
   <VLoading v-if="isFetching && photos.length === 0" />
 
   <div v-else>
@@ -158,14 +229,14 @@ watchEffect(() => {
           <div class="block aspect-10/8 h-full w-full cursor-pointer overflow-hidden bg-gray-100">
             <img
               class="pointer-events-none size-full object-cover group-hover:opacity-75"
-              :src="config.domain + photo.filename"
+              :src="photo.thumbnail"
             />
           </div>
           <div
             :class="{ '!flex': selectedPhotos.has(photo) }"
             class="absolute left-0 top-0 hidden h-1/3 w-full justify-between from-gray-300 to-transparent bg-gradient-to-b ease-in-out group-hover:flex"
           >
-            <a :href="config.link + photo.filename" target="_blank" class="ml-1 mt-1">
+            <a :href="previewLink(photo.filename)" target="_blank" class="ml-1 mt-1">
               <IconExternalLinkLine
                 class="h-6 w-6 cursor-pointer text-white transition-all hover:text-black"
               />
@@ -185,7 +256,7 @@ watchEffect(() => {
               <div class="flex flex-1 flex-col truncate">
                 <a
                   class="truncate text-xs text-white font-medium hover:underline"
-                  :href="config.link + photo.filename"
+                  :href="previewLink(photo.filename)"
                   target="_blank"
                 >
                   {{ photo.basename }}
